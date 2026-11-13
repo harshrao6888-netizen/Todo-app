@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+
+/* Design tokens taken from the Figma file */
+@theme {
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #4566ec;
+  --color-primary-dark: #253c98;
+  --color-primary-soft: #dadaff;
+  --color-ink: #090e23;
+  --color-muted: #717171;
+  --color-subtle: #6e7180;
+  --color-faint: #c0c0c0;
+  --color-line: #eaeaea;
+  --color-line-strong: #e6e6e6;
+  --color-canvas: #fdfdff;
+  --color-complete: #eff2ff;
+  --color-complete-icon: #99adff;
+  --color-pending: #ffe6e7;
+  --color-pending-icon: #ffb1b5;
+  --color-danger: #e5484d;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+  body {
+    @apply bg-[#eef0f7] font-sans text-ink antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-sheet-up { animation: sheet-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.animate-fade-in { animation: fade-in 180ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up,
+  .animate-fade-in { animation: none; }
+}
