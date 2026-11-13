@@ -171,7 +171,13 @@ test.describe('3.2 Home screen: weekly organisation', () => {
     await seed(request, { title: 'Sunday late', startAt: at(sunday, 23, 30).toISOString() });
     await seed(request, { title: 'Next Monday early', startAt: at(nextMonday, 0, 30).toISOString() });
 
+    // Week cards live on the All Weeks page, reached from Home's "View All".
     await page.goto('/');
+    await page.getByRole('button', { name: 'View All' }).click();
+    await expect(page).toHaveURL(/\/weeks/);
+    await expect(page.getByTestId('week-card')).toHaveCount(2);
+    await expect(page.getByRole('heading', { name: 'All Weeks' })).toBeVisible();
+    await page.goto('/weeks');
     const cards = page.getByTestId('week-card');
     await expect(cards).toHaveCount(2);
 
@@ -184,7 +190,8 @@ test.describe('3.2 Home screen: weekly organisation', () => {
     await expect(next.getByTestId('week-open')).toHaveText('1');
     await expect(next.getByTestId('week-completed')).toHaveText('0');
 
-    // Week strip runs Monday -> Sunday
+    // Week strip on Home runs Monday -> Sunday
+    await page.goto('/');
     const strip = page.getByRole('button', { name: format(mon, 'EEEE d MMMM'), exact: true });
     await expect(strip).toBeVisible();
   });
@@ -193,7 +200,7 @@ test.describe('3.2 Home screen: weekly organisation', () => {
     const nextMonday = addDays(thisMonday(), 7);
     await seed(request, { title: 'Plan sprint', startAt: at(nextMonday, 9).toISOString() });
     await seed(request, { title: 'Retro', startAt: at(addDays(nextMonday, 4), 16).toISOString() });
-    await page.goto('/');
+    await page.goto('/weeks');
     const card = page.getByTestId('week-card').first();
     await expect(card.getByTestId('task-row')).toHaveCount(0);
     await card.getByRole('button', { expanded: false }).click();
@@ -212,18 +219,18 @@ test.describe('3.3 Task status update', () => {
     await seed(request, { title: 'Finishing Wireframe', startAt: at(today(), 22).toISOString() });
     await seed(request, { title: 'Meeting with team', startAt: at(today(), 23).toISOString() });
     await page.goto('/');
-    const card = page.getByTestId('week-card').first();
-    await expect(card.getByTestId('week-open')).toHaveText('2');
-    await expect(card.getByTestId('week-completed')).toHaveText('0');
-
     await page.getByRole('checkbox', { name: 'Mark "Finishing Wireframe" as completed' }).first().click();
-    await expect(card.getByTestId('week-open')).toHaveText('1');
-    await expect(card.getByTestId('week-completed')).toHaveText('1');
     await expect(page.getByTestId('completed-card-count')).toHaveText('01');
     await expect.poll(async () => {
       const list = await (await request.get(API)).json();
       return list.find((t) => t.title === 'Finishing Wireframe').status;
     }).toBe('completed');
+
+    // The week card on All Weeks reflects the change
+    await page.getByRole('button', { name: 'View All' }).click();
+    const card = page.getByTestId('week-card').first();
+    await expect(card.getByTestId('week-open')).toHaveText('1');
+    await expect(card.getByTestId('week-completed')).toHaveText('1');
 
     // Back to In Progress from the details sheet
     await page.getByRole('button', { name: /Finishing Wireframe/ }).first().click();
@@ -287,7 +294,7 @@ test.describe('Responsive layout', () => {
         priority: 'medium',
       });
       await page.setViewportSize({ width, height: 844 });
-      for (const path of ['/', '/search', '/settings', '/notifications']) {
+      for (const path of ['/', '/weeks', '/search', '/settings', '/notifications']) {
         await page.goto(path);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow, `${path} overflows at ${width}px`).toBeLessThanOrEqual(0);

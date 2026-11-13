@@ -9,6 +9,7 @@ import AddTaskButton from './components/AddTaskButton.jsx';
 import Onboarding from './pages/Onboarding.jsx';
 import Home, { initialSelected } from './pages/Home.jsx';
 import Search from './pages/Search.jsx';
+import Weeks from './pages/Weeks.jsx';
 import Settings from './pages/Settings.jsx';
 import Notifications from './pages/Notifications.jsx';
 
@@ -38,6 +39,7 @@ function AppRoutes() {
       </Route>
       <Route element={<Shell />}>
         <Route path="search" element={<Search />} />
+        <Route path="weeks" element={<Weeks />} />
         <Route path="settings" element={<Settings />} />
         <Route path="notifications" element={<Notifications />} />
       </Route>

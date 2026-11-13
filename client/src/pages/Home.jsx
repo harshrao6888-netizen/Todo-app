@@ -1,42 +1,26 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, isToday, startOfDay } from 'date-fns';
 import { useTasks } from '../context/TasksContext.jsx';
-import { groupTasksByWeek, isThisWeek, summarize, tasksInWeek, tasksOnDay, weekKey } from '../lib/week.js';
+import { isThisWeek, summarize, tasksInWeek, tasksOnDay, weekKey } from '../lib/week.js';
 import { HomeHeader } from '../components/TopBar.jsx';
 import WeekStrip from '../components/WeekStrip.jsx';
 import SummaryCards from '../components/SummaryCards.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import TaskRow from '../components/TaskRow.jsx';
-import WeekCard from '../components/WeekCard.jsx';
 import { EmptyState, ErrorState, LoadingRows } from '../components/States.jsx';
 
 export default function Home({ selected, onSelect }) {
   const { tasks, loading, error, reload } = useTasks();
-  const [expanded, setExpanded] = useState(() => new Set([weekKey(new Date())]));
-  const weeksRef = useRef(null);
+  const navigate = useNavigate();
 
   const weekTasks = useMemo(() => tasksInWeek(tasks, selected), [tasks, selected]);
   const week = summarize(weekTasks);
   const dayTasks = useMemo(() => tasksOnDay(tasks, selected), [tasks, selected]);
-  const weeks = useMemo(() => groupTasksByWeek(tasks), [tasks]);
   const caption = isThisWeek(selected) ? 'This Week' : `Wk of ${format(selected, 'd MMM')}`;
 
-  const toggle = (key) =>
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-
-  // "View All": open the selected week's card in the weekly list and scroll to it.
-  const viewAll = () => {
-    const key = weekKey(selected);
-    setExpanded((prev) => new Set(prev).add(key));
-    requestAnimationFrame(() =>
-      weeksRef.current?.querySelector(`[data-week="${key}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    );
-  };
+  // "View All": open the All Weeks page with the selected week expanded.
+  const viewAll = () => navigate(`/weeks?week=${weekKey(selected)}`);
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,20 +64,6 @@ export default function Home({ selected, onSelect }) {
         ) : (
           <EmptyState title="No tasks for this day">Tap + to add one.</EmptyState>
         )}
-      </section>
-
-      <section aria-labelledby="weeks-h" ref={weeksRef}>
-        <h2 id="weeks-h" className="mb-4 text-lg font-semibold text-ink">
-          All Weeks
-        </h2>
-        {!loading && !error && weeks.length === 0 && (
-          <EmptyState title="No tasks yet">Your weeks will appear here once you add a task.</EmptyState>
-        )}
-        <div className="flex flex-col gap-3">
-          {weeks.map((w) => (
-            <WeekCard key={w.key} week={w} expanded={expanded.has(w.key)} onToggle={() => toggle(w.key)} />
-          ))}
-        </div>
       </section>
     </div>
   );
